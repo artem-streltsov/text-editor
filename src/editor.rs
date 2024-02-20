@@ -14,7 +14,13 @@ const STATUS_BG_COLOR: color::Rgb = color::Rgb(239, 239, 239);
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const QUIT_TIMES: u8 = 3;
 
-#[derive(Default)]
+#[derive(PartialEq, Copy, Clone)]
+pub enum SearchDirection {
+    Forward,
+    Backward
+}
+
+#[derive(Default, Clone)]
 pub struct Position {
     pub x: usize,
     pub y: usize
@@ -50,6 +56,7 @@ impl Editor {
             if let Err(error) = self.refresh_screen() {
                 die(error);
             }
+
             if self.should_quit {
                 break;
             }
@@ -106,21 +113,7 @@ impl Editor {
         let pressed_key = Terminal::read_key()?;
         match pressed_key {
             Key::Ctrl('s') => self.save(),
-            Key::Ctrl('f') => {
-                if let Some(query) = self
-                    .prompt("Search: ", |editor, _, query| {
-                        if let Some(position) = editor.document.find(&query) {
-                            editor.cursor_position = position;
-                            editor.scroll();
-                        }
-                    }).unwrap_or(None) {
-                    if let Some(position) = self.document.find(&query[..]) {
-                        self.cursor_position = position;
-                    } else {
-                        self.status_message = StatusMessage::from(format!("Not found: {}.", query));
-                    }
-                }
-            }
+            Key::Ctrl('f') => self.search(),
             Key::Ctrl('q') => {
                 if self.quit_times > 0 && self.document.is_dirty() {
                     self.status_message = StatusMessage::from(format!(
@@ -324,9 +317,9 @@ impl Editor {
             print!("{}", text);
         }
     }
-    fn prompt<C>(&mut self, prompt: &str, callback: C) -> Result<Option<String>, std::io::Error> 
+    fn prompt<C>(&mut self, prompt: &str, mut callback: C) -> Result<Option<String>, std::io::Error> 
     where 
-        C: Fn(&mut Self, Key, &String),
+        C: FnMut(&mut Self, Key, &String),
     {
         let mut result = String::new();
         loop {
@@ -369,6 +362,37 @@ impl Editor {
             self.status_message = StatusMessage::from("File saved successfully.".to_string());
         } else {
             self.status_message = StatusMessage::from("Error writing file!".to_string());
+        }
+    }
+    fn search(&mut self) {
+        let old_position = self.cursor_position.clone();
+        let mut direction = SearchDirection::Forward;
+        let query = self
+            .prompt(
+                "Search (ESC to cancel, Arrows to navigate): ", 
+                |editor, key, query| {
+                    let mut moved = false;
+                    match key {
+                        Key::Right | Key::Down => {
+                            direction = SearchDirection::Forward;
+                            editor.move_cursor(Key::Right);
+                            moved = true;
+                        }
+                        Key::Left | Key::Up => direction = SearchDirection::Backward,
+                        _ => direction = SearchDirection::Forward
+                    }
+                    if let Some(position) = editor.document.find(&query, &editor.cursor_position, direction) {
+                        editor.cursor_position = position;
+                        editor.scroll();
+                    } else if moved {
+                        editor.move_cursor(Key::Left);
+                    }
+                }
+            ).unwrap_or(None);
+            
+        if query.is_none() {
+            self.cursor_position = old_position;
+            self.scroll();
         }
     }
 }

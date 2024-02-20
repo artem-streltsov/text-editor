@@ -13,6 +13,7 @@ mod row;
 mod terminal;
 pub use document::Document;
 pub use row::Row;
+pub use editor::SearchDirection;
 use editor::Editor;
 pub use terminal::Terminal;
 pub use editor::Position;
