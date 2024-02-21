@@ -11,6 +11,7 @@ mod document;
 mod editor;
 mod row;
 mod terminal;
+mod highlighting;
 pub use document::Document;
 pub use row::Row;
 pub use editor::SearchDirection;
