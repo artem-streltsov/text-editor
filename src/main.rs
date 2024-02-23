@@ -9,6 +9,7 @@
 )]
 mod document;
 mod editor;
+mod filetype;
 mod row;
 mod terminal;
 mod highlighting;
@@ -16,6 +17,8 @@ pub use document::Document;
 pub use row::Row;
 pub use editor::SearchDirection;
 use editor::Editor;
+pub use filetype::FileType;
+pub use filetype::HighlightingOptions;
 pub use terminal::Terminal;
 pub use editor::Position;
 
