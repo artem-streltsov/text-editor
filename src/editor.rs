@@ -47,7 +47,8 @@ pub struct Editor {
     document: Document,
     offset: Position,
     status_message: StatusMessage,
-    quit_times: u8
+    quit_times: u8,
+    highlighted_word: Option<String>
 }
 
 impl Editor {
@@ -87,17 +88,19 @@ impl Editor {
             cursor_position: Position::default(),
             offset: Position::default(),
             status_message: StatusMessage::from(initial_status),
-            quit_times: QUIT_TIMES
+            quit_times: QUIT_TIMES,
+            highlighted_word: None,
         }
     }
 
-    fn refresh_screen(&self) -> Result<(), std::io::Error> {
+    fn refresh_screen(&mut self) -> Result<(), std::io::Error> {
         Terminal::cursor_hide();
         Terminal::cursor_position(&Position::default());
         if self.should_quit {
             Terminal::clear_screen();
             println!("Goodbye.\r");
         } else {
+            self.document.highlight(&self.highlighted_word, Some(self.offset.y.saturating_add(self.terminal.size().height as usize)));
             self.draw_rows();
             self.draw_status_bar();
             self.draw_message_bar();
@@ -388,7 +391,7 @@ impl Editor {
                     } else if moved {
                         editor.move_cursor(Key::Left);
                     }
-                    editor.document.highlight(Some(query));
+                    editor.highlighted_word = Some(query.to_string());
                 }
             ).unwrap_or(None);
             
@@ -396,7 +399,7 @@ impl Editor {
             self.cursor_position = old_position;
             self.scroll();
         }
-        self.document.highlight(None);
+        self.highlighted_word = None;
     }
 }
 
