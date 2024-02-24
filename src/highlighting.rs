@@ -1,22 +1,28 @@
 use termion::color;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Type {
     None,
     Number,
     Match,
     String,
-    Character
+    Character,
+    Comment,
+    PrimaryKeywords,
+    SecondaryKeywords,
 }
 
 impl Type {
-    pub fn to_color(&self) -> impl color::Color {
+    pub fn to_color(self) -> impl color::Color {
         match self {
             Type::Number => color::Rgb(220, 163, 163),
             Type::Match => color::Rgb(38, 139, 210),
             Type::String => color::Rgb(255, 255, 255),
             Type::Character => color::Rgb(108, 113, 196),
-            _ => color::Rgb(255, 255, 255)
+            Type::Comment => color::Rgb(133, 153, 9),
+            Type::PrimaryKeywords => color::Rgb(181, 137, 0),
+            Type::SecondaryKeywords => color::Rgb(42, 161, 152),
+            _ => color::Rgb(255, 255, 255),
         }
     }
 }
