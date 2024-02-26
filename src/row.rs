@@ -52,12 +52,15 @@ impl Row {
         result.push_str(&end_highlight[..]);
         result
     }
+    
     pub fn len(&self) -> usize {
         self.len
     }
+    
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
+    
     pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len() {
             self.string.push(c);
@@ -77,6 +80,7 @@ impl Row {
         self.len = length;
         self.string = result;
     }
+    
     pub fn delete(&mut self, at: usize) {
         if at >= self.len() {
             return;
@@ -92,10 +96,12 @@ impl Row {
         self.len = length;
         self.string = result;
     }
+    
     pub fn append(&mut self, new: &Self) {
         self.string = format!("{}{}", self.string, new.string);
         self.len += new.len;
     }
+    
     pub fn split(&mut self, at: usize) -> Self {
         let mut row: String = String::new();
         let mut length = 0;
@@ -120,9 +126,11 @@ impl Row {
             is_highlighted: false
         }
     }
+    
     pub fn as_bytes(&self) -> &[u8] {
         self.string.as_bytes()
     }
+    
     pub fn find(&self, query: &str, at: usize, direction: SearchDirection) -> Option<usize> {
         if at > self.len || query.is_empty() {
             return None;
@@ -230,6 +238,7 @@ impl Row {
             highlighting::Type::PrimaryKeywords,
         )
     }
+    
     fn highlight_secondary_keywords(&mut self, index: &mut usize, opts: &HighlightingOptions, chars: &[char]) -> bool {
         self.highlight_keywords(
             index,

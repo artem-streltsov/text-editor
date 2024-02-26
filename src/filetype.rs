@@ -27,9 +27,11 @@ impl FileType {
     pub fn name(&self) -> String {
         self.name.clone()
     }
+    
     pub fn highlighting_options(&self) -> &HighlightingOptions {
         &self.hl_opts
     }
+    
     pub fn from(file_name: &str) -> Self {
         if file_name.ends_with(".rs") {
             return Self {
@@ -120,21 +122,27 @@ impl HighlightingOptions {
     pub fn numbers(&self) -> bool {
         self.numbers
     }
+    
     pub fn strings(&self) -> bool {
         self.strings
     }
+    
     pub fn characters(&self) -> bool {
         self.characters
     }
+    
     pub fn comments(&self) -> bool {
         self.comments
     }
+    
     pub fn primary_keywords(&self) -> &Vec<String> {
         &self.primary_keywords
     }
+    
     pub fn secondary_keywords(&self) -> &Vec<String> {
         &self.secondary_keywords
     }
+    
     pub fn multiline_comments(&self) -> bool {
         self.multiline_comments
     }

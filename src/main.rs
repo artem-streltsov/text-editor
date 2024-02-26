@@ -7,16 +7,18 @@
     clippy::wildcard_enum_match_arm,
     clippy::else_if_without_else
 )]
+
 mod document;
 mod editor;
 mod filetype;
 mod row;
 mod terminal;
 mod highlighting;
+
+use editor::Editor;
 pub use document::Document;
 pub use row::Row;
 pub use editor::SearchDirection;
-use editor::Editor;
 pub use filetype::FileType;
 pub use filetype::HighlightingOptions;
 pub use terminal::Terminal;
