@@ -1,6 +1,6 @@
 pub struct FileType {
     name: String,
-    hl_opts: HighlightingOptions
+    hl_opts: HighlightingOptions,
 }
 
 #[derive(Default)]
@@ -18,7 +18,7 @@ impl Default for FileType {
     fn default() -> Self {
         Self {
             name: String::from("No filetype"),
-            hl_opts: HighlightingOptions::default()
+            hl_opts: HighlightingOptions::default(),
         }
     }
 }
@@ -36,7 +36,7 @@ impl FileType {
         if file_name.ends_with(".rs") {
             return Self {
                 name: String::from("Rust"),
-                hl_opts: HighlightingOptions{ 
+                hl_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
                     characters: true,
@@ -111,8 +111,8 @@ impl FileType {
                         "f32".to_string(),
                         "f64".to_string(),
                     ],
-                }
-            }
+                },
+            };
         }
         Self::default()
     }

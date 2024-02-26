@@ -10,7 +10,7 @@ pub struct Document {
     rows: Vec<Row>,
     pub file_name: Option<String>,
     dirty: bool,
-    file_type: FileType
+    file_type: FileType,
 }
 
 impl Document {
@@ -25,20 +25,39 @@ impl Document {
             rows,
             file_name: Some(filename.to_string()),
             dirty: false,
-            file_type
+            file_type,
         })
     }
-
+    
+    pub fn file_type(&self) -> String {
+        self.file_type.name()
+    }
+    
     pub fn row(&self, index: usize) -> Option<&Row> {
         self.rows.get(index)
     }
-   
+    
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty()
     }
     
     pub fn len(&self) -> usize {
         self.rows.len()
+    }
+    
+    fn insert_newline(&mut self, at: &Position) {
+        if at.y > self.rows.len() {
+            return;
+        }
+        if at.y == self.rows.len() {
+            self.rows.push(Row::default());
+            return;
+        }
+        #[allow(clippy::indexing_slicing)]
+        let current_row = &mut self.rows[at.y];
+        let new_row = current_row.split(at.x);
+        #[allow(clippy::integer_arithmetic)]
+        self.rows.insert(at.y + 1, new_row);
     }
     
     pub fn insert(&mut self, at: &Position, c: char) {
@@ -59,22 +78,15 @@ impl Document {
         }
         self.unhighlight_rows(at.y);
     }
-    
-    fn insert_newline(&mut self, at: &Position) {
-        if at.y > self.rows.len() {
-            return;
+
+    fn unhighlight_rows(&mut self, start: usize) {
+        let start = start.saturating_sub(1);
+        for row in self.rows.iter_mut().skip(start) {
+            row.is_highlighted = false;
         }
-        if at.y == self.rows.len() {
-            self.rows.push(Row::default());
-            return;
-        }
-        #[allow(clippy::indexing_slicing)]
-        let current_row = &mut self.rows[at.y];
-        let new_row = current_row.split(at.x);
-        self.rows.insert(at.y + 1, new_row);
     }
-  
-    #[allow(clippy::indexing_slicing)]
+    
+    #[allow(clippy::integer_arithmetic, clippy::indexing_slicing)]
     pub fn delete(&mut self, at: &Position) {
         let len = self.rows.len();
         if at.y >= len {
@@ -89,9 +101,9 @@ impl Document {
             let row = &mut self.rows[at.y];
             row.delete(at.x);
         }
-        self.unhighlight_rows(at.y)
+        self.unhighlight_rows(at.y);
     }
-   
+    
     pub fn save(&mut self) -> Result<(), Error> {
         if let Some(file_name) = &self.file_name {
             let mut file = fs::File::create(file_name)?;
@@ -104,17 +116,18 @@ impl Document {
         }
         Ok(())
     }
-  
+    
     pub fn is_dirty(&self) -> bool {
         self.dirty
     }
-   
+    
     #[allow(clippy::indexing_slicing)]
     pub fn find(&self, query: &str, at: &Position, direction: SearchDirection) -> Option<Position> {
         if at.y >= self.rows.len() {
             return None;
         }
         let mut position = Position { x: at.x, y: at.y };
+
         let start = if direction == SearchDirection::Forward {
             at.y
         } else {
@@ -144,7 +157,7 @@ impl Document {
         }
         None
     }
-  
+    
     pub fn highlight(&mut self, word: &Option<String>, until: Option<usize>) {
         let mut start_with_comment = false;
         let until = if let Some(until) = until {
@@ -158,18 +171,11 @@ impl Document {
         };
         #[allow(clippy::indexing_slicing)]
         for row in &mut self.rows[..until] {
-            start_with_comment = row.highlight(&self.file_type.highlighting_options(), word, start_with_comment);
+            start_with_comment = row.highlight(
+                &self.file_type.highlighting_options(),
+                word,
+                start_with_comment,
+            );
         }
-    }
-   
-    fn unhighlight_rows(&mut self, start: usize) {
-        let start = start.saturating_sub(1);
-        for row in self.rows.iter_mut().skip(start) {
-            row.is_highlighted = false;
-        }
-    }
-
-    pub fn file_type(&self) -> String {
-        self.file_type.name()
     }
 }
