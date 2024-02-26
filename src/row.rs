@@ -36,8 +36,7 @@ impl Row {
                 let highlighting_type = self.highlighting.get(index).unwrap_or(&highlighting::Type::None);
                 if highlighting_type != current_highlighting {
                     current_highlighting = highlighting_type;
-                    let start_highlight =
-                        format!("{}", termion::color::Fg(highlighting_type.to_color()));
+                    let start_highlight = format!("{}", termion::color::Fg(highlighting_type.to_color()));
                     result.push_str(&start_highlight[..]);
                 }
                 if c == '\t' {
