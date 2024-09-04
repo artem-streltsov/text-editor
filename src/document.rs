@@ -18,8 +18,10 @@ impl Document {
         let contents = fs::read_to_string(filename)?;
         let file_type = FileType::from(filename);
         let mut rows = Vec::new();
-        for value in contents.lines() {
-            rows.push(Row::from(value));
+        for (index, value) in contents.lines().enumerate() {
+            let mut row = Row::from(value);
+            row.line_number = index + 1;
+            rows.push(row);
         }
         Ok(Self {
             rows,
@@ -50,14 +52,16 @@ impl Document {
             return;
         }
         if at.y == self.rows.len() {
-            self.rows.push(Row::default());
-            return;
+            let new_row = Row::default();
+            self.rows.push(new_row);
+        } else {
+            #[allow(clippy::indexing_slicing)]
+            let current_row = &mut self.rows[at.y];
+            let new_row = current_row.split(at.x);
+            #[allow(clippy::integer_arithmetic)]
+            self.rows.insert(at.y + 1, new_row);
         }
-        #[allow(clippy::indexing_slicing)]
-        let current_row = &mut self.rows[at.y];
-        let new_row = current_row.split(at.x);
-        #[allow(clippy::integer_arithmetic)]
-        self.rows.insert(at.y + 1, new_row);
+        self.update_line_numbers(at.y + 1);
     }
     
     pub fn insert(&mut self, at: &Position, c: char) {
@@ -70,6 +74,7 @@ impl Document {
         } else if at.y == self.rows.len() {
             let mut row = Row::default();
             row.insert(0, c);
+            row.line_number = self.rows.len() + 1;
             self.rows.push(row);
         } else {
             #[allow(clippy::indexing_slicing)]
@@ -97,6 +102,7 @@ impl Document {
             let next_row = self.rows.remove(at.y + 1);
             let row = &mut self.rows[at.y];
             row.append(&next_row);
+            self.update_line_numbers(at.y + 1);
         } else {
             let row = &mut self.rows[at.y];
             row.delete(at.x);
@@ -176,6 +182,12 @@ impl Document {
                 word,
                 start_with_comment,
             );
+        }
+    }
+
+    fn update_line_numbers(&mut self, start: usize) {
+        for (index, row) in self.rows.iter_mut().enumerate().skip(start) {
+            row.line_number = index + 1;
         }
     }
 }

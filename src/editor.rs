@@ -102,7 +102,7 @@ impl Editor {
             self.draw_status_bar();
             self.draw_message_bar();
             Terminal::cursor_position(&Position {
-                x: self.cursor_position.x.saturating_sub(self.offset.x),
+                x: self.cursor_position.x.saturating_sub(self.offset.x).saturating_add(4), // Add 4 for line number width
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
             });
         }
@@ -221,8 +221,8 @@ impl Editor {
         }
         if x < offset.x {
             offset.x = x;
-        } else if x >= offset.x.saturating_add(width) {
-            offset.x = x.saturating_sub(width).saturating_add(1);
+        } else if x >= offset.x.saturating_add(width).saturating_sub(4) { // Subtract 4 for line number width
+            offset.x = x.saturating_sub(width).saturating_add(5); // Add 5 for line number width and space
         }
     }
     
@@ -306,9 +306,9 @@ impl Editor {
     pub fn draw_row(&self, row: &Row) {
         let width = self.terminal.size().width as usize;
         let start = self.offset.x;
-        let end = self.offset.x.saturating_add(width);
-        let row = row.render(start, end);
-        println!("{}\r", row)
+        let end = self.offset.x.saturating_add(width).saturating_sub(4); // Subtract 4 for line number width
+        let row_content = row.render(start, end);
+        println!("{:>4} {}\r", row.line_number, row_content);
     }
     
     #[allow(clippy::integer_division, clippy::integer_arithmetic)]

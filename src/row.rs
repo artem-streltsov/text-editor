@@ -11,6 +11,7 @@ pub struct Row {
     highlighting: Vec<highlighting::Type>,
     pub is_highlighted: bool,
     len: usize,
+    pub line_number: usize,
 }
 
 impl From<&str> for Row {
@@ -20,6 +21,7 @@ impl From<&str> for Row {
             highlighting: Vec::new(),
             is_highlighted: false,
             len: slice.graphemes(true).count(),
+            line_number: 0,
         }
     }
 }
@@ -123,6 +125,7 @@ impl Row {
             len: splitted_length,
             is_highlighted: false,
             highlighting: Vec::new(),
+            line_number: 0,
         }
     }
     
